@@ -1,8 +1,9 @@
-// The game's rules and state, with no drawing and no browser in it: the player on foot
-// and in cars, traffic, pedestrians, police, the wanted level, combat, pickups, particles
-// and the clock. step() advances one fixed step and returns what happened as bit flags,
-// so the caller can react (sounds, announcements) without the world knowing about them.
-// Missions live in missions.js and steer the world through the hooks below.
+// The game's rules and state, with no drawing and no browser in it: the player
+// on foot and in cars, traffic, pedestrians, police, the wanted level, combat,
+// pickups, particles and the clock. step() advances one fixed step and returns
+// what happened as bit flags, so the caller can react (sounds, announcements)
+// without the world knowing about them. Missions live in missions.js and steer
+// the world through the hooks below.
 
 import { CAR, CLOCK, EVENT_BUSTED, EVENT_CRASH, EVENT_JACK, EVENT_JINGLE, EVENT_PICKUP, EVENT_SHOT, EVENT_WASTED, MISSIONS, PED, PLAYER, POLICE, ROADS, STEP, TRAFFIC, WANTED, WORLD } from './config.js';
 import { hitBuilding, inWater, nearestRoad, onRoad, onSidewalk } from './city.js';
@@ -737,7 +738,7 @@ export function createWorld(random, city) {
     state.camera.x = player.x;
     state.camera.y = player.y;
     if (audio) {
-      audio.update(dt, player.inCar ? Math.abs(player.inCar.speed) : 0, nearestPoliceDistance());
+      audio.update(dt, player.inCar ? Math.abs(player.inCar.speed) : 0, nearestPoliceDistance(), state.wanted);
     }
     return events;
   }

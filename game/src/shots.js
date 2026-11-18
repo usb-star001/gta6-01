@@ -1,8 +1,8 @@
-// The screenshot scenes behind ?shot=start|drive|chase|mission. Each one plays the real
-// rules forward from a fresh world for a fixed number of steps, steered by a simple
-// autopilot that keeps the car on its road (aim at a point ahead on the same road line),
-// so the frame is what a short game really looks like and the same seed always gives
-// the same frame.
+// The screenshot scenes behind ?shot=start|drive|chase|mission. Each one plays the
+// real rules forward from a fresh world for a fixed number of steps, steered by a
+// simple autopilot that keeps the car on its road (aim at a point ahead on the
+// same road line), so the frame is what a short game really looks like and the
+// same seed always gives the same frame.
 
 import { ROADS, STEP } from './config.js';
 import { SCREEN_PLAY, SCREEN_TITLE } from './render.js';
@@ -32,8 +32,8 @@ function nearestLine(value, lines) {
 }
 
 /**
- * Steer toward a point 600 ahead on the road the car is already on, so the car stays
- * on the asphalt instead of cutting across blocks to chase a marker.
+ * Steer toward a point 600 ahead on the road the car is already on, so the car
+ * stays on the asphalt instead of cutting across blocks to chase a marker.
  */
 function autopilot(car) {
   const horizontal = Math.abs(Math.cos(car.angle)) >= Math.abs(Math.sin(car.angle));
@@ -90,8 +90,8 @@ function runSteps(world, seconds) {
 }
 
 /**
- * Set `world` to the named scene (start, drive, chase or mission; any other name is
- * start) and return the screen to draw over it and the best bankroll to show.
+ * Set `world` to the named scene (start, drive, chase or mission; any other name
+ * is start) and return the screen to draw over it and the best bankroll to show.
  */
 export function stageShot(name, world) {
   const state = world.state;
@@ -115,10 +115,13 @@ export function stageShot(name, world) {
     putPlayerInCar(world, 420, 680, 0);
     state.wanted = 3;
     runSteps(world, CHASE_SECONDS);
+    // The cover: the player's car dead centre, cruisers close behind it.
+    state.camera.x = state.player.x;
+    state.camera.y = state.player.y;
     return { screen: SCREEN_PLAY, best: 1240 };
   }
-  // mission: the first job, the client waiting at the Docks, golden hour. The car runs
-  // west along the dock road toward the marker.
+  // mission: the first job, the client waiting at the Docks, golden hour. The car
+  // runs west along the dock road toward the marker.
   state.clockHour = 17.9;
   world.missions.startNext();
   putPlayerInCar(world, 1900, 2440, Math.PI);

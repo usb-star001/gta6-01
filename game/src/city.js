@@ -1,6 +1,7 @@
-// The city of Port Azure, generated once from the seed: a road grid, blocks full of
-// buildings, a park, a plaza, the harbour and its piers, and the named places the story
-// and the missions use. Everything here is plain data — no drawing, no browser.
+// The city of Port Azure, generated once from the seed: a road grid, blocks full
+// of buildings, a park, a plaza, the harbour and its piers, and the named places
+// the story and the missions use. Everything here is plain data — no drawing,
+// no browser.
 
 import { ROADS, WORLD } from './config.js';
 import { intBetween, pick } from './random.js';
@@ -8,7 +9,7 @@ import { intBetween, pick } from './random.js';
 const ROOF_COLOURS = ['#4a4f5c', '#5c5148', '#46586b', '#5b4a5e', '#3f5a4a', '#6b5a46', '#54423a'];
 const PARK_TREES = 14;
 
-/** Is (x, y) on a road (within the asphalt, not the sidewalk)? */
+/** Is (x, y) on a road (on the asphalt, not the sidewalk)? */
 export function onRoad(x, y) {
   const half = ROADS.width / 2;
   for (const rx of ROADS.vertical) if (Math.abs(x - rx) <= half) return true;

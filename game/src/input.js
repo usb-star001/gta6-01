@@ -1,8 +1,8 @@
-// Keyboard and pointer input. Held keys give movement and driving; one-shot presses
-// (enter a car, reload, pause, menus) are queued as bit flags and taken once by the loop,
-// so a press between two frames is never lost and never counted twice. The mouse aims on
-// foot and fires the pistol; the camera is the canvas, so mouse coordinates are converted
-// to world coordinates by the caller.
+// Keyboard and pointer input. Held keys drive movement and driving; one-shot
+// presses (enter a car, reload, pause, menus) are queued as bit flags and taken
+// exactly once by the loop, so a press between two frames is never lost and never
+// counted twice. The mouse aims on foot and fires the pistol; the caller turns
+// canvas coordinates into world coordinates.
 
 export const ACTION_ENTER = 1;
 export const ACTION_RELOAD = 2;
@@ -10,6 +10,7 @@ export const ACTION_PAUSE = 4;
 export const ACTION_CONFIRM = 8;
 export const ACTION_MISSIONS = 16;
 export const ACTION_MUTE = 32;
+export const ACTION_STATS = 64;
 
 const UP = new Set(['ArrowUp', 'KeyW']);
 const DOWN = new Set(['ArrowDown', 'KeyS']);
@@ -38,6 +39,7 @@ export function createInput(target) {
     else if (event.code === 'KeyR') actions |= ACTION_RELOAD;
     else if (event.code === 'KeyM') actions |= ACTION_MISSIONS;
     else if (event.code === 'KeyL') actions |= ACTION_MUTE;
+    else if (event.code === 'KeyH') actions |= ACTION_STATS;
     else if (CONFIRM.has(event.code)) actions |= ACTION_CONFIRM;
     else if (PAUSE.has(event.code)) actions |= ACTION_PAUSE;
     if (UP.has(event.code) || DOWN.has(event.code) || LEFT.has(event.code) || RIGHT.has(event.code) || BRAKE.has(event.code)) {
@@ -76,7 +78,7 @@ export function createInput(target) {
   }
 
   return {
-    /** -1/0/1 forward and strafe while on foot; throttle and steer while driving. */
+    /** -1/0/1 forward and strafe on foot; throttle and steer while driving. */
     forward() {
       return (has(UP) ? 1 : 0) - (has(DOWN) ? 1 : 0);
     },

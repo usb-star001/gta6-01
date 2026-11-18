@@ -1,7 +1,11 @@
-// All sound is synthesised with WebAudio — no audio files, no network. An engine hum
-// follows the car's speed, a two-tone siren follows the nearest police car, and a small
-// step sequencer plays a bassline and hats for the city's music. Everything starts on the
-// first user gesture (browsers block audio before one) and can be muted with L.
+// All sound is synthesised with WebAudio — no audio files, no network. An engine
+// hum follows the car's speed, a two-tone siren follows the nearest police car,
+// and a small step sequencer plays the city's music. Two loops share the sequencer:
+// "Dusk", a slow minor bassline for cruising, and "Night Run", a busier loop with a
+// plucked lead for when the heat is on. The sequencer swaps between them every
+// four bars, and three stars or more force the tense loop at once. Everything
+// starts on the first user gesture (browsers block audio before one) and can be
+// muted with L.
 
 export function createAudio() {
   let context = null;
@@ -17,12 +21,23 @@ export function createAudio() {
   let musicGain = null;
   let musicTimer = null;
   let musicStep = 0;
+  let wantedLevel = 0;
   let muted = false;
   let started = false;
 
-  // A minor-key bassline that walks the harbour at 96 BPM, 16 steps a bar.
-  const BASS = [55, 0, 55, 0, 65.41, 0, 55, 0, 49, 0, 49, 0, 58.27, 0, 65.41, 0];
-  const HAT_STEPS = [0, 2, 4, 6, 8, 10, 12, 14];
+  // "Dusk": a minor-key bassline that walks the harbour at 96 BPM, 16 steps a bar.
+  const BASS_A = [55, 0, 55, 0, 65.41, 0, 55, 0, 49, 0, 49, 0, 58.27, 0, 65.41, 0];
+  const HAT_A = [0, 2, 4, 6, 8, 10, 12, 14];
+  // "Night Run": a driving bass with a plucked lead on top, same tempo, twice the nerves.
+  const BASS_B = [55, 55, 0, 55, 0, 65.41, 0, 55, 82.41, 0, 82.41, 0, 73.42, 0, 65.41, 0];
+  const LEAD_B = [220, 0, 0, 261.63, 0, 0, 329.63, 0, 0, 0, 261.63, 0, 220, 0, 196, 0];
+  const HAT_B = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15];
+
+  /** Which loop plays now: the tense one under three stars, otherwise four bars each. */
+  function currentLoop() {
+    if (wantedLevel >= 3) return 'B';
+    return Math.floor(musicStep / 64) % 2 === 0 ? 'A' : 'B';
+  }
 
   function noiseBuffer(seconds) {
     const buffer = context.createBuffer(1, Math.floor(context.sampleRate * seconds), context.sampleRate);
@@ -80,35 +95,47 @@ export function createAudio() {
     }
   }
 
+  function note(freq, type, volume, seconds) {
+    const osc = context.createOscillator();
+    osc.type = type;
+    osc.frequency.value = freq;
+    const gain = context.createGain();
+    const now = context.currentTime;
+    gain.gain.setValueAtTime(volume, now);
+    gain.gain.exponentialRampToValueAtTime(0.01, now + seconds);
+    osc.connect(gain);
+    gain.connect(musicGain);
+    osc.start(now);
+    osc.stop(now + seconds + 0.02);
+  }
+
+  function hat(volume) {
+    const src = context.createBufferSource();
+    src.buffer = noiseBuffer(0.03);
+    const filter = context.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 6000;
+    const gain = context.createGain();
+    gain.gain.value = volume;
+    src.connect(filter);
+    filter.connect(gain);
+    gain.connect(musicGain);
+    src.start();
+  }
+
   function playMusicStep() {
     if (!context || muted) return;
+    const loop = currentLoop();
     const step = musicStep % 16;
-    const freq = BASS[step];
-    if (freq > 0) {
-      const osc = context.createOscillator();
-      osc.type = 'triangle';
-      osc.frequency.value = freq;
-      const gain = context.createGain();
-      const now = context.currentTime;
-      gain.gain.setValueAtTime(0.5, now);
-      gain.gain.exponentialRampToValueAtTime(0.01, now + 0.22);
-      osc.connect(gain);
-      gain.connect(musicGain);
-      osc.start(now);
-      osc.stop(now + 0.24);
-    }
-    if (HAT_STEPS.includes(step)) {
-      const src = context.createBufferSource();
-      src.buffer = noiseBuffer(0.03);
-      const filter = context.createBiquadFilter();
-      filter.type = 'highpass';
-      filter.frequency.value = 6000;
-      const gain = context.createGain();
-      gain.gain.value = 0.12;
-      src.connect(filter);
-      filter.connect(gain);
-      gain.connect(musicGain);
-      src.start();
+    const bass = loop === 'A' ? BASS_A : BASS_B;
+    const freq = bass[step];
+    if (freq > 0) note(freq, 'triangle', 0.5, 0.22);
+    if (loop === 'B') {
+      const lead = LEAD_B[step];
+      if (lead > 0) note(lead, 'square', 0.12, 0.14);
+      if (HAT_B.includes(step)) hat(0.06);
+    } else if (HAT_A.includes(step)) {
+      hat(0.12);
     }
     musicStep += 1;
   }
@@ -139,8 +166,13 @@ export function createAudio() {
       if (master) master.gain.value = muted ? 0 : 0.5;
       return muted;
     },
+    /** Which music loop is playing now: 'A' for the dusk cruise, 'B' for the night run. */
+    loop() {
+      return currentLoop();
+    },
     /** Call every frame: engine follows speed (0 when on foot), siren follows police. */
-    update(dt, speed, policeDistance) {
+    update(dt, speed, policeDistance, wanted) {
+      wantedLevel = wanted || 0;
       if (!context) return;
       const target = speed > 5 ? 0.05 + Math.min(0.09, speed / 520 * 0.09) : 0;
       engineGain.gain.setTargetAtTime(muted ? 0 : target, context.currentTime, 0.1);

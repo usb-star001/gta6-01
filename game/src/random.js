@@ -1,5 +1,5 @@
-// A small seeded random number generator (mulberry32): the same seed gives the same city,
-// which is what makes the screenshot scenes repeatable.
+// A seeded random number generator (mulberry32): the same seed always builds the
+// same city, so the screenshot scenes are repeatable frame for frame.
 
 export function createRandom(seed) {
   let a = seed | 0;
@@ -11,7 +11,7 @@ export function createRandom(seed) {
   };
 }
 
-/** Pick one item from an array with the seeded random. */
+/** One item from an array, picked with the seeded random. */
 export function pick(random, items) {
   return items[Math.floor(random() * items.length)];
 }

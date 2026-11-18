@@ -1,12 +1,13 @@
-// Drawing only: the world's state and the current screen in, pixels out. The camera
-// follows the player at a fixed zoom; the HUD is drawn in a 1280x720 logical space scaled
-// to the window. Flat shapes, canvas text, a day/night lighting pass and a live minimap.
-// Text that holds a number is rebuilt only when the number changes, so a frame allocates
-// nothing in the hot path.
+// Drawing only: the world's state and the current screen in, pixels out. The
+// camera follows the player at a fixed zoom; the HUD is drawn in a 1280x720
+// logical space scaled to the window. Flat shapes, canvas text, a day/night
+// lighting pass and a live minimap. Text that holds a number is rebuilt only
+// when the number changes, so a frame allocates nothing in the hot path.
 
 import { CAR, FONT, PALETTE, PED, PLAYER, ROADS, WORLD } from './config.js';
 
 export const SCREEN_TITLE = 'title';
+export const SCREEN_STORY = 'story';
 export const SCREEN_PLAY = 'play';
 export const SCREEN_PAUSED = 'paused';
 export const SCREEN_OVER = 'over';
@@ -213,10 +214,19 @@ export function createRenderer(canvas) {
       context.fillText('POLICE', 2, 4);
     }
     if (isPlayer) {
+      // A thick pink ring plus a small marker above the roof: the player's car
+      // must be findable in a busy frame at a glance.
       context.strokeStyle = '#ff5d8f';
-      context.lineWidth = 2.5;
-      roundRect(-CAR.length / 2 - 3, -CAR.width / 2 - 3, CAR.length + 6, CAR.width + 6, 10);
+      context.lineWidth = 4;
+      roundRect(-CAR.length / 2 - 4, -CAR.width / 2 - 4, CAR.length + 8, CAR.width + 8, 11);
       context.stroke();
+      context.fillStyle = '#ff5d8f';
+      context.beginPath();
+      context.moveTo(0, -CAR.width / 2 - 16);
+      context.lineTo(-7, -CAR.width / 2 - 26);
+      context.lineTo(7, -CAR.width / 2 - 26);
+      context.closePath();
+      context.fill();
     }
     context.restore();
   }
@@ -432,6 +442,42 @@ export function createRenderer(canvas) {
     if (prompt) text(prompt, HUD_W / 2, y + height - 34, 22, accent || PALETTE.hudGold, 'center');
   }
 
+  /** The story card shown when a game starts: the debt, the deal, and the stakes. */
+  function drawStory(state, ui) {
+    const scale = Math.min(canvas.width / HUD_W, canvas.height / HUD_H);
+    const ox = (canvas.width - HUD_W * scale) / 2;
+    const oy = (canvas.height - HUD_H * scale) / 2;
+    context.save();
+    context.setTransform(scale, 0, 0, scale, ox, oy);
+    context.fillStyle = 'rgba(6,8,14,0.62)';
+    context.fillRect(0, 0, HUD_W, HUD_H);
+    const w = 780;
+    const x = (HUD_W - w) / 2;
+    const y = 150;
+    const height = 420;
+    context.fillStyle = 'rgba(8,10,16,0.94)';
+    roundRect(x, y, w, height, 16);
+    context.fill();
+    context.strokeStyle = PALETTE.hudGold;
+    context.lineWidth = 2;
+    roundRect(x, y, w, height, 16);
+    context.stroke();
+    text('PORT AZURE', HUD_W / 2, y + 62, 30, PALETTE.hudGold, 'center');
+    plainText('6:42 PM — the sun is going down on the harbour.', HUD_W / 2, y + 100, 18, PALETTE.hudMuted, 'center');
+    const lines = [
+      'Mara Voss owes the harbour syndicate $50,000.',
+      'Eddie Kline has three jobs that pay it down —',
+      'if she can stay ahead of the harbour police.',
+      '',
+      'Steal a car. Take the jobs. Do not get caught.',
+    ];
+    lines.forEach((line, i) => {
+      plainText(line, HUD_W / 2, y + 152 + i * 34, 20, i === 4 ? PALETTE.hudText : PALETTE.hudMuted, 'center');
+    });
+    text('Press Space or click to begin', HUD_W / 2, y + height - 44, 22, PALETTE.hudGold, 'center');
+    context.restore();
+  }
+
   function drawTitle(state, ui) {
     const scale = Math.min(canvas.width / HUD_W, canvas.height / HUD_H);
     const ox = (canvas.width - HUD_W * scale) / 2;
@@ -619,6 +665,10 @@ export function createRenderer(canvas) {
 
     if (screen === SCREEN_TITLE) {
       drawTitle(state, ui);
+      return;
+    }
+    if (screen === SCREEN_STORY) {
+      drawStory(state, ui);
       return;
     }
     if (screen === SCREEN_HELP) {

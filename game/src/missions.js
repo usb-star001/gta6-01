@@ -1,8 +1,10 @@
-// The story thread: three missions for Mara Voss, a getaway driver in Port Azure, plus
-// repeatable fares once she has proved herself. A mission is a list of steps — go to a
-// place, pick something up, lose the heat — with a marker on the map and a timer where the
-// job is hot. The world calls update() every step; this module only steers the world's
-// objective, marker and toast, and hands out the money.
+// The story thread: six missions for Mara Voss, a getaway driver in Port Azure,
+// plus repeatable fares once she has proved herself. The first three are
+// Eddie Kline's; the next three are Rosa the Broker's, and they unlock in
+// order after Eddie's. A mission is a list of steps — go to a place, pick
+// something up, lose the heat — with a marker on the map and a timer where the
+// job is hot. The world calls update() every step; this module only steers the
+// world's objective, marker and toast, and hands out money.
 
 import { EVENT_JINGLE, EVENT_PICKUP } from './config.js';
 
@@ -31,6 +33,30 @@ const STORY = [
     steps: [
       { label: 'Pick up the package at Warehouse 7', at: 'warehouse', onArrive: 'heat2' },
       { label: 'Deliver the package to Lighthouse Point', at: 'lighthouse', timer: 150 },
+    ],
+  },
+  {
+    id: 'smuggle', name: 'The Smuggler', reward: 400,
+    brief: 'Rosa the Broker needs a crate moved from the Docks to the Safehouse. No questions, no stops.',
+    steps: [
+      { label: 'Pick up Rosa\'s crate at the Docks', at: 'docks', onArrive: 'heat' },
+      { label: 'Deliver the crate to the Safehouse', at: 'safehouse', timer: 150 },
+    ],
+  },
+  {
+    id: 'tail', name: 'The Tail', reward: 350,
+    brief: 'Follow the informant from the Hotel to the Park. Stay close, stay unseen — if he spots you, it is over.',
+    steps: [
+      { label: 'Pick up the informant\'s trail at the Hotel', at: 'hotel' },
+      { label: 'Follow him to the Park', at: 'park', timer: 120 },
+    ],
+  },
+  {
+    id: 'payoff', name: 'The Payoff', reward: 600,
+    brief: 'The syndicate wants its money. Take the payoff from the Vault to Lighthouse Point — and expect the police to know.',
+    steps: [
+      { label: 'Collect the payoff at the Vault', at: 'vault', onArrive: 'heat2' },
+      { label: 'Deliver the payoff to Lighthouse Point', at: 'lighthouse', timer: 150 },
     ],
   },
 ];
@@ -102,6 +128,9 @@ export function createMissions(state) {
 
   function maybeSpawnFare() {
     if (fare || done < 1) return;
+    // Rosa's gigs own the map marker while they run: a fare waits its turn
+    // rather than stealing the marker from under a gig.
+    if (state.gigActive) return;
     const roads = state.city.landmarks;
     const spots = [roads.hotel, roads.tower, roads.park, roads.docks];
     const spot = spots[Math.floor(Math.random() * spots.length)];
@@ -195,7 +224,7 @@ export function createMissions(state) {
           }
         }
         const place = state.city.landmarks[step.at];
-        const d = Math.hypot(state.player.x - place.x, state.player.y - place.y);
+        const d = Math.hypot(state.player.x - place.x, place.y - place.y);
         if (d < ARRIVE_RADIUS) {
           if (step.onArrive === 'heat') {
             state.wanted = 3;
