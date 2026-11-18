@@ -4,16 +4,16 @@
 [![rank](https://make.fun/badge/gta6-01/usb-star001/gta6-01/rank.svg)](https://make.fun/bounty/gta6-01/leaderboard?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 [![reward](https://make.fun/badge/gta6-01/usb-star001/gta6-01/reward.svg)](https://make.fun/bounty/gta6-01?utm_source=github&utm_medium=readme&utm_campaign=gta6-01)
 
-**Neon Harbor** is a top-down open-world crime game set in the fictional city of
-Port Azure. Mara Voss owes the harbour syndicate **$50,000**, and the only way out
-is through Eddie Kline's jobs — while the harbour police close in. An intro story
-card lays out the debt before you take the wheel.
+**Neon Harbor** is a top-down open-world crime game in the fictional city of
+Port Azure. Mara Voss owes the harbour syndicate **$50,000**, and the only way
+to clear it is to work for Eddie Kline while the harbour police close in. An
+intro story card sets out the debt before you take the wheel.
 
 ## The game
 
-- **A living city** — a 3600×2800 road grid with traffic, pedestrians, parked cars,
-  a park, a plaza, warehouses and the harbour with its piers and lighthouse. The
-  camera follows you; the city is much bigger than the screen.
+- **A living city** — a 3600×2800 road grid with traffic, pedestrians, parked
+  cars, a park, a plaza, warehouses and the harbour with its piers and
+  lighthouse. The camera follows you; the city is much bigger than the screen.
 - **Steal and drive** — walk up to any car and press E. Taking one with a driver
   inside is a crime: the driver runs and somebody calls it in. Driving has
   acceleration, steering, braking, a handbrake and collisions. The player car is
@@ -50,13 +50,17 @@ card lays out the debt before you take the wheel.
 - **HUD and live minimap** — health, money, wanted stars, the clock, the current
   objective, a mission timer, and a minimap showing roads, cars, police and the
   mission marker.
+- **Stats and records** — press H for "Mara's Record": money on hand and earned
+  this session, jobs and fares done, cars stolen, rides taken, best times for
+  all three races, packages found out of twelve, and play time, with all-time
+  totals kept in localStorage. The city keeps moving while you read it.
 - **Start menu and save** — New Game / Continue / How to Play, and progress
   (money, jobs done, position, time of day) autosaves to localStorage.
 - **Sound and music, all synthesised** — WebAudio only, no audio files: engine hum,
   sirens, gunshots, and two music loops sharing one step sequencer. "Dusk" is a
   slow minor bassline for cruising; "Night Run" is a busier loop with a plucked
   lead. They trade every four bars, and three stars or more force the tense loop
-  at once. A day cycle runs from dusk gold to night, with headlights after dark.
+  at once. Headlights come on after dark.
 
 ## Controls
 
@@ -68,6 +72,7 @@ card lays out the debt before you take the wheel.
 | Space | Handbrake while driving |
 | Shift | Sprint on foot |
 | R | Reload the pistol |
+| H | Mara's Record — stats and best times |
 | M | Eddie's and Rosa's jobs — missions, fares and gigs |
 | P / Esc | Pause |
 | L | Sound on / off |
